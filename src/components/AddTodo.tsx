@@ -1,22 +1,34 @@
-import {memo} from 'react';
+import React, {memo, useState} from 'react';
 import Button from "./Button";
 
 import {Label, Input, AddDiv} from '../assets/styles/todo-list.styles'
-import useHelpersTodo from "../hooks/useHelpersTodo";
+import useTodos from "../hooks/useTodos";
 
 
 const TaskAdd = () => {
+  const {addTodo} = useTodos()
+  const [todoText ,setTodoText] = useState('')
 
-    const {addRef, setValueInput, handleAddTask, handleSearch,
-        edit, valueInput, handleSaveInput, handleOnChange, handleDelete, handleEdit} = useHelpersTodo()
+  const handleChangeTodoText = (e : React.ChangeEvent<HTMLInputElement>) => setTodoText(e.target.value)
+  const handleAddTodo = (e : React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.keyCode === 13) {
+        addTodo(todoText)
+        setTodoText('')
+      }
+  }
+
+  const handleClickAddTodo = (e : React.KeyboardEvent<HTMLInputElement>) => {
+      addTodo(todoText)
+      setTodoText('')
+  }
 
     return (
         <div>
             <AddDiv>
                 <Label>
-                    <Input type="text" placeholder="Add a new task..." ref={addRef} />
+                    <Input type="text" placeholder="Add a new task..." value={todoText} onChange={handleChangeTodoText}  onKeyDown={handleAddTodo} />
                 </Label>
-                <Button title="Add" onClick={handleAddTask} />
+                <Button title="Add"  onClick={handleClickAddTodo}/>
             </AddDiv>
         </div>
     );

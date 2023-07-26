@@ -1,53 +1,33 @@
 import React from 'react';
 
-import {ContainerTodo, ContainerTaskAdd, Input, AddDiv, Label, TitleStyle, ButtonStyle, ButtonCategory} from "../assets/styles/todo-list.styles";
+import {ButtonCategory, ContainerTaskAdd, ContainerTodo, TitleStyle} from "../assets/styles/todo-list.styles";
 import TodoItem from "./Todo";
-import Button from "./Button";
-import useHelpersTodo from '../hooks/useHelpersTodo';
+import useTodos from '../hooks/useTodos';
+import AddTodo from "./AddTodo";
 
 
 const TodoList = () => {
-    const {addRef, handleSearch, setValueInput, handleAddTask, edit, valueInput, handleSaveInput, handleOnChange, handleDelete, handleEdit, selectCategory} = useHelpersTodo()
 
-   return (
+  const {  filteredTodos, setFilterTodos} = useTodos()
+  console.log('filteredTodos', filteredTodos)
+
+  return (
            <ContainerTodo>
                <h1>TODO-LIST</h1>
                <ContainerTaskAdd >
-                   <AddDiv>
-                       <Label>
-                           <Input type="text" placeholder="Add a new task..." ref={addRef} />
-                       </Label>
-                       <Button title="Add" onClick={handleAddTask} />
-                   </AddDiv>
+               <AddTodo/>
                </ContainerTaskAdd>
 
                <div style={{display: 'flex'}}>
-               <ButtonCategory onClick={() =>selectCategory('all')}>All Tasks</ButtonCategory>
-                <ButtonCategory onClick={() =>selectCategory(true)}>Completed Tasks</ButtonCategory>
-                <ButtonCategory onClick={() =>selectCategory(false)}>Active Tasks</ButtonCategory>
-                </div>
-             
+                <ButtonCategory onClick={() => setFilterTodos('All')}>All Tasks</ButtonCategory>
+                <ButtonCategory onClick={() => setFilterTodos('Done')}>Completed Tasks</ButtonCategory>
+                <ButtonCategory onClick={() => setFilterTodos('Active')}>Active Tasks</ButtonCategory>
+               </div>
 
-               <TitleStyle> Total Count: {handleSearch.length}</TitleStyle>
-               {handleSearch.map((todo) => (
-                   <TodoItem title={todo.title}
-                             key={todo.id}
-                             checked={todo.completed}
-                             id={todo.id}
-                             checkedOnClick={() => handleOnChange(todo.id)}
-                             value={todo.title}
-                             valueSave={valueInput}
-                             onChangeInputSave={(e: React.ChangeEvent<HTMLInputElement>) => setValueInput(e.target.value)}
-                             handeSaveInput={() => handleSaveInput(todo.id)}
-                             edit={edit}
-                   >
-                       <Button title='Edit' onClick={() => handleEdit(todo.id, todo.title)} />
-                       <Button title='Delete' onClick={() => handleDelete(todo.id)} />
-                   </TodoItem>
-               ))}
+               <TitleStyle> Total Count: {filteredTodos.length}</TitleStyle>
+               {filteredTodos.map((todo) => <TodoItem todo={todo}/>)}
            </ContainerTodo>
        )
 }
-
 
 export default TodoList;

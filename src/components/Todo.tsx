@@ -1,38 +1,49 @@
-import React from 'react';
+import React, {useState} from 'react';
 
-import { ContainerButtons, InputEdit, ButtonEdit, TitleStyle, ContainerTodoItem} from '../assets/styles/todo-list.styles'
+import {ButtonEdit, ContainerTodoItem, InputEdit, TitleStyle} from '../assets/styles/todo-list.styles'
 import Checkbox from "./Checkbox";
+import useTodos from "../hooks/useTodos";
+import Button from "./Button";
+import {Todo} from "../provider/TodoProvider";
 
 type TodoItemPropsType = {
-    title: string,
-    checkedOnClick: () => void,
-    checked: boolean
-    id: string,
-    children: React.ReactNode,
-    value: string,
-    onChangeInputSave: (event: React.ChangeEvent<HTMLInputElement>) => void,
-    valueSave: string,
-    handeSaveInput: () => void,
-    edit: null | string | boolean
+    todo : Todo
 }
 
-const ToDoItem = ({title, id, children, checked, checkedOnClick, onChangeInputSave, valueSave, handeSaveInput, edit}: TodoItemPropsType) => {
+const ToDoItem = (props: TodoItemPropsType) => {
+  const {  todo} = props
+  const {id , title , completed} = todo
+  const { editCompletedTodo , editTileTodo  , deleteTodo} = useTodos()
+  const [editTitleTodo , setEditTitleTodo] = useState('')
+  const [isEdit , setIsEdit] = useState(false)
+
+  const handleEditTodo = () => {
+    editTileTodo(editTitleTodo, id)
+    setIsEdit(false)
+  }
+
+    const renderContent = () => {
+        if (isEdit) {return (
+          <div>
+              <InputEdit type="text" value={editTitleTodo} onChange={(e) => {setEditTitleTodo(e.target.value)}} />
+              <ButtonEdit onClick={handleEditTodo}>Save</ButtonEdit>
+          </div>)}
+
+        return (
+          <div style={{display : 'flex' , alignItems : 'center' }}>
+              <TitleStyle id={id}>{title}</TitleStyle>
+              <Button title='Edit' onClick={() => {setIsEdit(!isEdit)}} />
+              <Button title='Delete' onClick={() => {deleteTodo(id)}} />
+          </div>
+        )
+    }
+
     return (
         <ContainerTodoItem>
             <div>
-                {edit === id ? (
-                    <div>
-                        <InputEdit type="text" value={valueSave} onChange={onChangeInputSave} />
-                        <ButtonEdit onClick={handeSaveInput}>Save</ButtonEdit>
-                    </div>) :
-
-                    (<TitleStyle id={id}>{title}</TitleStyle>)
-                }
-                <Checkbox checked={checked} checkedOnClick={checkedOnClick} />
+                {renderContent()}
+                <Checkbox checked={completed} checkedOnClick={() => editCompletedTodo(id)}  />
             </div>
-                <ContainerButtons>
-                    {children}
-                </ContainerButtons>
         </ContainerTodoItem>
     );
 }
