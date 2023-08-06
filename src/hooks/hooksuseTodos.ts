@@ -1,5 +1,6 @@
 import {todos as initialDataTodos} from "../models/todo.model";
-import {useEffect, useLayoutEffect, useMemo, useState} from "react";
+import {useCallback, useEffect, useMemo, useState} from "react";
+import { v4 as uuidv4 } from 'uuid';
 
 export interface Todo {
   id: string
@@ -9,20 +10,23 @@ export interface Todo {
 
 type FilterTodos = 'All' | 'Active' | 'Done'
 
+
 const useTodos = () => {
 
-  useLayoutEffect(() => {
+
+  useEffect(() => {
     const localTodosJSON = localStorage.getItem('todos')
     if (!localTodosJSON) localStorage.setItem('todos',JSON.stringify(initialDataTodos))
-  } , [])
+  } , []);
 
-  const getInitialTodos = () => {
+  const getInitialTodos = useCallback(() => {
     const initialTodosJSON = localStorage.getItem('todos')
     if (initialTodosJSON) return JSON.parse(initialTodosJSON)
     return  []
-  }
+  }, []);
 
   const initialTodos = getInitialTodos()
+
   const [todos , setTodos] = useState<Todo[]>(initialTodos)
   const [filter , setFilter] = useState<FilterTodos>('All')
 
@@ -31,48 +35,62 @@ const useTodos = () => {
     localStorage.setItem('todos', newTodos)
   } , [todos])
 
-  const addTodo = (value : string) => setTodos([...todos , {
-    id : new Date().toISOString(),
-    title : value,
-    completed : false
-  } ])
+  const addTodo = useCallback((value : string) => {
+    setTodos([ {
+      id: uuidv4(),
+      title: value,
+      completed: false
+    }, ...todos])
+  } , [todos])
 
-  const editTileTodo = (title : string , id : string) => {
+
+  const editTileTodo = useCallback((title : string , id : string) => {
     const editedTodos = todos.map((todo => {
       if (todo.id === id)  return  {...todo , title }
       return  todo
     }))
     setTodos(editedTodos)
-  }
+  }, [todos])
 
-  const editCompletedTodo = (id : string) => {
-    const editedTodos = todos.map((todo => {
-      if (todo.id === id)  return  {...todo , completed : !todo.completed }
-      return  todo
-    }))
-    setTodos(editedTodos)
-  }
+  const editCompletedTodo = useCallback((id: string) => {
+    setTodos((prevTodos) =>
+      prevTodos.map((todo) => {
+        if (todo.id === id) return { ...todo, completed: !todo.completed };
+        return todo;
+      })
+    );
+  }, [todos]);
 
-  const setFilterTodos = (value :FilterTodos ) => setFilter(value)
+  const setFilterTodos = useCallback((value: FilterTodos) => {
+    setFilter(value);
+  }, []);
 
 
   const filteredTodos = useMemo(() => {
     switch (filter) {
-      case "Active": return todos.filter(todo =>  !todo.completed)
-      case "Done": return todos.filter(todo => todo.completed)
-      default : return todos
+      case "Active":
+        return todos.filter((todo) => !todo.completed);
+      case "Done":
+        return todos.filter((todo) => todo.completed);
+      default:
+        return todos;
     }
-  } , [todos])
+  }, [filter, todos]);
 
-  return {
-    todos,
-    filteredTodos,
-    // functions
-    addTodo,
-    editTileTodo,
-    editCompletedTodo,
-    setFilterTodos
-  }
+  const todosContextValue = useMemo(
+    () => ({
+      todos,
+      filteredTodos,
+      // functions
+      addTodo,
+      editTileTodo,
+      editCompletedTodo,
+      setFilterTodos,
+    }),
+    [todos, filteredTodos, addTodo, editTileTodo, editCompletedTodo, setFilterTodos]
+  );
+
+  return todosContextValue;
 };
 
 export default useTodos;

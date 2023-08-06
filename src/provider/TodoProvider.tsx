@@ -1,5 +1,6 @@
-import React, {ReactNode, useEffect, useLayoutEffect, useMemo, useState} from 'react'
+import {FC, ReactNode, createContext, useCallback, useEffect, useMemo, useState} from 'react'
 import {todos as initialDataTodos} from "../models/todo.model";
+import { v4 as uuidv4 } from 'uuid';
 
 export interface Todo {
   id: string
@@ -9,7 +10,7 @@ export interface Todo {
 
 type FilterTodos = 'All' | 'Active' | 'Done'
 
-export type TodoContext = {
+export type TodoContextType = {
  todos : Todo[]
   filteredTodos: Todo[],
   // functions
@@ -20,7 +21,7 @@ export type TodoContext = {
   deleteTodo : (id : string) => void
 }
 
-export const TodoContext = React.createContext<TodoContext>({
+export const TodoContext = createContext<TodoContextType>({
   todos: [],
   filteredTodos: [],
   // functions
@@ -35,59 +36,77 @@ export interface ITodosProviderProps {
   children: ReactNode
 }
 
-const TodosProvider: React.FC<ITodosProviderProps> = props => {
+const TodosProvider: FC<ITodosProviderProps> = props => {
+
   const { children } = props
 
-  useLayoutEffect(() => {
-    const localTodosJSON = localStorage.getItem('todos')
-    if (!localTodosJSON) localStorage.setItem('todos',JSON.stringify(initialDataTodos))
-  } , [])
+  // const addRef = useRef<HTMLInputElement | null>(null);
 
   const getInitialTodos = () => {
     const initialTodosJSON = localStorage.getItem('todos')
     if (initialTodosJSON) return JSON.parse(initialTodosJSON)
     return  []
-  }
+  };
 
   const initialTodos = getInitialTodos()
+
   const [todos , setTodos] = useState<Todo[]>(initialTodos)
   const [filter , setFilter] = useState<FilterTodos>('All')
 
   useEffect(() => {
-    const newTodos = JSON.stringify(todos)
-    localStorage.setItem('todos', newTodos)
+    if (todos.length === 0) {
+      localStorage.setItem('todos',JSON.stringify(initialDataTodos))
+    }
+    else {
+      const newTodos = JSON.stringify(todos)
+      localStorage.setItem('todos', newTodos)
+    }
   } , [todos])
 
-  const addTodo = (value : string) => {
-    setTodos([...todos, {
-      id: new Date().toISOString(),
+  const addTodo = useCallback((value : string) => {
+    setTodos([ {
+      id: uuidv4(),
       title: value,
       completed: false
-    }])
-  }
+    }, ...todos])
+  } , [todos])
 
-  const editTileTodo = (title : string , id : string) => {
+//   const addTodo = useCallback(() => {
+//     if(addRef.current) {
+//         const inputRef = addRef.current.value
+//         const newTodo = {
+//             id: uuidv4(),
+//             title: inputRef,
+//             completed: false
+//         }
+//         setTodos([newTodo, ...todos])
+//         addRef.current.value = ''
+//     }
+
+// }, [todos]);
+
+  const editTileTodo = useCallback((title : string , id : string) => {
     const editedTodos = todos.map((todo => {
       if (todo.id === id)  return  {...todo , title }
       return  todo
     }))
     setTodos(editedTodos)
-  }
+  }, [todos])
 
-  const editCompletedTodo = (id : string) => {
+  const editCompletedTodo = useCallback((id : string) => {
     const editedTodos = todos.map((todo => {
       if (todo.id === id)  return  {...todo , completed : !todo.completed }
       return  todo
     }))
     setTodos(editedTodos)
-  }
+  },[todos])
 
-  const deleteTodo = (id : string) => {
+  const deleteTodo = useCallback((id : string) => {
     const filteredTodos = todos.filter(todo => todo.id !== id)
     setTodos(filteredTodos)
-  }
+  }, [todos])
 
-  const setFilterTodos = (value :FilterTodos ) => setFilter(value)
+  const setFilterTodos = useCallback((value :FilterTodos ) => setFilter(value), [])
 
   const filteredTodos = useMemo(() => {
     switch (filter) {
@@ -107,7 +126,7 @@ const TodosProvider: React.FC<ITodosProviderProps> = props => {
         editTileTodo,
         editCompletedTodo,
         setFilterTodos,
-        deleteTodo
+        deleteTodo,
       }}
     >
       {children}
@@ -115,4 +134,4 @@ const TodosProvider: React.FC<ITodosProviderProps> = props => {
   )
 }
 
-export default TodosProvider
+export default TodosProvider; 

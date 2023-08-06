@@ -1,5 +1,5 @@
-import React from 'react';
-import {CheckboxContainer} from "../assets/styles/todo-list.styles";
+import { FC, memo } from 'react';
+import {} from "../assets/styles/todo-list.styles";
 
 interface CheckedPropsType {
     checked: boolean,
@@ -7,15 +7,15 @@ interface CheckedPropsType {
 }
 
 
-const Checked: React.FC<CheckedPropsType> = ({checked, checkedOnClick}) => {
+const Checked: FC<CheckedPropsType> = ({checked, checkedOnClick}) => {
     return (
 
-            <CheckboxContainer>
-                <input type='checkbox' checked={checked} onChange={checkedOnClick}/>
+            <div>
+                <input className='ml-20' type='checkbox' checked={checked} onChange={checkedOnClick}/>
                 {checked}
-            </CheckboxContainer>
+            </div>
 
     );
 }
 
-export default Checked;
+export default memo(Checked);
