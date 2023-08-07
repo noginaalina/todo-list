@@ -59,7 +59,7 @@ const useTodos = () => {
         return todo;
       })
     );
-  }, [todos]);
+  }, [todos])
 
   const setFilterTodos = useCallback((value: FilterTodos) => {
     setFilter(value);
